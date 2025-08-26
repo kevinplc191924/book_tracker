@@ -1,0 +1,22 @@
+# Ignore database files
+database/
+
+# Ignore Python environment
+books/
+books/*
+/books
+
+# Standard Python ignores
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.db
+*.sqlite3
+.env
+.venv
+venv/
+ENV/
+
+# Ignore specific files
+test.ipynb
