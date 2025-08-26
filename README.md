@@ -49,6 +49,8 @@ It follows an **ELT pipeline** (Extract → Load → Transform → Report) and g
 ---
 
 ## Images
+**Example output**
+
 ![Book tracker screenshot](assets/no_update_result.jpg)
 
 ---
