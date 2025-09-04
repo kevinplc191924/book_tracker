@@ -1,4 +1,3 @@
-from elt.extract import extract
 from elt.load import load
 from elt.transform import transform
 from manipulation.generate_report import report
@@ -6,8 +5,7 @@ from manipulation.summary import get_measures
 
 
 def main():
-    extract()
-    load()
+    load() # Extract funcionality is called here already
     transform()
     report(*get_measures())
 
