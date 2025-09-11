@@ -17,6 +17,7 @@ __pycache__/
 .venv
 venv/
 ENV/
+.vscode
 
 # Ignore specific files
 test.ipynb
