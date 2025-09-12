@@ -21,3 +21,8 @@ ENV/
 
 # Ignore specific files
 test.ipynb
+book_tracker_creds.json
+
+# Exclude datasets
+datasets/books.csv
+datasets/consolidate.csv
