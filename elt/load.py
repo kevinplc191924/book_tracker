@@ -1,14 +1,13 @@
-from elt.extract import extract
-from elt.exceptions import LoadError
-from elt.logger import get_logger
 import os
+
 import pandas as pd
+
+from elt.extract import extract
+from elt.logger import get_logger
+from elt.exceptions import LoadError
 
 # Set logger
 logger = get_logger(__name__)
-
-import os
-import pandas as pd
 
 # Avoid duplicates in records
 def log_record_if_new(directory: str, today: pd.Timestamp, current_count: int):
@@ -65,12 +64,12 @@ def load(directory: str, save_df: bool = False):
         raise ValueError("A valid directory is a string.") 
     if not isinstance(save_df, bool):
         logger.exception("Invalid parameter format: save_df")
-        raise ValueError("The save data frame parameter must be a bool.")
+        raise ValueError("The parameter to save the DataFrame must be a bool.")
 
     # Validate directory existence
     if not os.path.exists(directory):
         os.makedirs(directory)
-        logger.info(f"Created directory: {directory}")
+        logger.info(f"Directory created: {directory}")
     
     # Create an empty records.csv in the provided directory (only in the first call)
     file_path = os.path.join(directory, "records.csv")
@@ -90,7 +89,7 @@ def load(directory: str, save_df: bool = False):
             consolidate.to_csv(os.path.join(directory, "consolidate.csv"), index=False)
 
         except Exception as e:
-            logger.exception("Data loading process failed.")
+            logger.exception("Loading process failed: DataFrames.")
             raise LoadError(f"{e}")
     
     # Get only new entries and dates
@@ -99,5 +98,5 @@ def load(directory: str, save_df: bool = False):
         logger.info("Successfull loading process.")
     
     except Exception as e:
-        logger.exception("Data loading process failed.")
+        logger.exception("Loading process failed: Records.")
         raise LoadError(f"{e}")

@@ -1,5 +1,5 @@
-import os
 import base64
+import os
 
 # Get the base64 string from the environment
 encoded = os.getenv("BOOK_TRACKER_CREDS_B64")
