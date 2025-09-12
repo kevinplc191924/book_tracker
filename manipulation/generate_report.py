@@ -1,7 +1,32 @@
-from rich.table import Table
 from rich.console import Console
+from rich.table import Table
 
-def report(*args):
+def report(results: dict):
+    """
+    Displays a formatted reading report using CLI tables.
+
+    This function prints a summary of reading metrics, top-ranked books,
+    the most recently completed book, and newly added entries using `rich.Table`.
+
+    Parameters
+    ----------
+    results : dict
+        Dictionary containing reading metrics and DataFrames, including:
+        
+        - 'overall_total', 'total_current', 'ongoing', 'dropped'
+        - 'mean_pages_per_day', 'mean_time_reading'
+        - 'mean_pages_per_day_current', 'mean_time_reading_current'
+        - 'days_since_last'
+        - 'best' : pd.DataFrame
+        - 'last' : pd.DataFrame
+        - 'new_entries' : pd.DataFrame
+
+    Returns
+    -------
+    None
+        Output is printed directly to the console.
+    """
+    
     console = Console()
 
     # Main summary table
@@ -10,15 +35,15 @@ def report(*args):
     summary_table.add_column("Value", style="magenta")
 
     metrics = [
-        ("Total books read", args[0]),
-        ("Books completed this year", args[1]),
-        ("Currently reading", args[2]),
-        ("Books dropped", args[3]),
-        ("Avg pages/day (overall)", args[4]),
-        ("Avg days/book (overall)", args[5]),
-        ("Avg pages/day (this year)", args[6]),
-        ("Avg days/book (this year)", args[7]),
-        ("Days since last book finished", args[10])
+        ("Total books read", results["overall_total"]),
+        ("Books completed this year", results["total_current"]),
+        ("Currently reading", results["ongoing"]),
+        ("Books dropped", results["dropped"]),
+        ("Avg pages/day (overall)", results["mean_pages_per_day"]),
+        ("Avg days/book (overall)", results["mean_time_reading"]),
+        ("Avg pages/day (this year)", results["mean_pages_per_day_current"]),
+        ("Avg days/book (this year)", results["mean_time_reading_current"]),
+        ("Days since last book finished", results["days_since_last"])
     ]
     for label, value in metrics:
         summary_table.add_row(label, str(value))
@@ -27,7 +52,7 @@ def report(*args):
 
     # Top-3 Best Ranked Books
     console.print("\n✨ [bold]Top-3 Best Ranked Books This Year:[/bold]")
-    df_best = args[8]
+    df_best = results["best"]
     best_table = Table(show_header=True, header_style="bold green")
     for col in df_best.columns:
         best_table.add_column(col.title().replace("_", " "), style="white")
@@ -37,10 +62,20 @@ def report(*args):
 
     # Last Book Read
     console.print("\n📖 [bold]Last Book Read:[/bold]")
-    df_last = args[9]
+    df_last = results["last"]
     last_table = Table(show_header=True, header_style="bold blue")
     for col in df_last.columns:
         last_table.add_column(col.title().replace("_", " "), style="white")
     for _, row in df_last.iterrows():
         last_table.add_row(*[str(cell) for cell in row])
     console.print(last_table)
+
+    # New additions
+    console.print("\n📖 [bold]New book additions:[/bold]")
+    df_new = results["new_entries"]
+    new_table = Table(show_header=True, header_style="bold blue")
+    for col in df_new.columns:
+        new_table.add_column(col.title().replace("_", " "), style="white")
+    for _, row in df_new.iterrows():
+        new_table.add_row(*[str(cell) for cell in row])
+    console.print(new_table)
