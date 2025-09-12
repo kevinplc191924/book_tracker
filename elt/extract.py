@@ -1,30 +1,42 @@
 import pandas as pd
-from pathlib import Path
+import gspread
+from oauth2client.service_account import ServiceAccountCredentials
+from elt.exceptions import ExtractionError
+from elt.logger import get_logger
 
-def extract():
-    """Data extraction from the origin"""
+# Set the logger
+logger = get_logger(__name__)
 
-    ## Data extraction from online Excel file: up-to-date file ##
+def extract() -> tuple[pd.DataFrame, pd.DataFrame]:
+    """
+    Data extraction from the origin.
+    """
+    # File extraction from Google Sheets
+    try:
+        scope = [
+            "https://www.googleapis.com/auth/spreadsheets",
+            "https://www.googleapis.com/auth/drive"
+        ]
 
-    # Windows/OneDrive path
-    # Make sure the path is properly read with Path
-    path = Path(r"C:\Users\DESKTOP_A\OneDrive\books_database_complete.xlsx")
-    excel_file = pd.ExcelFile(path)  # Multiple sheets
+        creds = ServiceAccountCredentials.from_json_keyfile_name("book_tracker_creds.json", scope)
+        client = gspread.authorize(creds)
 
-    ## Preparing datasets for comparison ##
+        sheets = client.open_by_key("1mRx4CClu1io5Ievu9b5PTJ6nIEDOFfl-oFgIv55Q37g")
+    except Exception as e:
+        logger.exception("Data extraction failed.")
+        raise ExtractionError(f"{e}")
 
-    # Create df for comparison: current
-    books_current = pd.read_excel(excel_file, sheet_name="books")
+    # Getting books and consolidate sheets
+    try:
+        books_ws = sheets.worksheet("books")
+        consolidate_ws = sheets.worksheet("consolidate")
 
-    # Stored df: previous books file that serves as a baseline
-    books_previous = pd.read_csv("./database/books.csv")
+        books_current = pd.DataFrame(books_ws.get_all_records()) # Current format
+        consolidate = pd.DataFrame(consolidate_ws.get_all_records()) # Previous format
 
-    # No new additions case
-    diff = len(books_current) - len(books_previous)
-    if diff == 0:
-        return None
+        logger.info("Data successfully extracted.")
+        return books_current, consolidate
 
-    ## Identify new entries ##
-    new_entries = books_current.tail(diff)
-
-    return new_entries
+    except Exception as e:
+        logger.exception("Sheet access failed.")
+        raise ExtractionError(f"{e}")

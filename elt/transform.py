@@ -14,4 +14,13 @@ def transform():
     books["days"] = (books["end_date"] - books["start_date"]).dt.days
     books["pages_per_day"] = (books["total_pages"] / books["days"]).round(2)
 
+    # REWRITE THIS:
+    # Show new entries
+    print("Added:")
+    for name, author in zip(
+        new_entries["book_name"].tolist(), new_entries["author"].tolist()
+        ):
+        print(f" ➺  {name} by {author}")
+    print("\n")
+
     return books, consolidate
