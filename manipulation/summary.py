@@ -6,7 +6,7 @@ from elt.transform import transform
 # Set logger
 logger = get_logger(__name__)
 
-def get_measures(year: int):
+def get_measures(books: pd.DataFrame, consolidate: pd.DataFrame, records: pd.DataFrame, year: int) -> dict:
     """
     Computes summary metrics and extracts highlights from book tracking data.
 
@@ -16,6 +16,12 @@ def get_measures(year: int):
 
     Parameters
     ----------
+    books : pd.DataFrame
+        Transformed book DataFrame.
+    consolidate : pd.DataFrame
+        Transformed consolidate DataFrame.
+    records : pd.DataFrame
+        Transformed records DataFrame.
     year : int
         The year to filter metrics by. If the year is outside the available range,
         it defaults to the most recent year in the dataset.
@@ -59,9 +65,6 @@ def get_measures(year: int):
     TransformationError
         If data loading or transformation fails.
     """
-    
-    # Get the datasets needed
-    books, consolidate, records = transform()
 
     # Parameter validation
     min_year_available = int(books["year"].min())

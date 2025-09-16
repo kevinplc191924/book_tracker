@@ -38,7 +38,7 @@ def log_record_if_new(directory: str, today: pd.Timestamp, current_count: int):
         new_record.to_csv(file_path, mode="a", header=False, index=False)
 
 
-def load(directory: str, save_df: bool = False):
+def load(directory: str, books_current: pd.DataFrame, consolidate: pd.DataFrame, save_df: bool = False):
     """
     Extract data from the origin and optionally save it to disk, logging record counts.
 
@@ -46,6 +46,10 @@ def load(directory: str, save_df: bool = False):
     ----------
     directory : str
         Path to the directory where extracted data and logs will be saved.
+    books_current : pd.DataFrame
+        Book database with the current format (from extract).
+    consolidate : pd.DataFrame
+        Book database with the previous format (from extract).
     save_df : bool, optional
         Whether to save the extracted DataFrames (`books_current.csv` and `consolidate.csv`),
         by default False.
@@ -53,7 +57,10 @@ def load(directory: str, save_df: bool = False):
     Raises
     ------
     ValueError
-        If `directory` is not a string or `save_df` is not a boolean.
+        If `directory` is not a string
+        If any DataFrame is empty 
+        If `save_df` is not a boolean
+    
     LoadError
         If saving data or logging records fails.
     """
@@ -71,14 +78,21 @@ def load(directory: str, save_df: bool = False):
         os.makedirs(directory)
         logger.info(f"Directory created: {directory}")
     
+    # Validate dfs are not empty
+    if books_current.empty():
+        logger.exception("Empty DataFrame.")
+        raise ValueError("Empty DataFrame: books_current. Can't proceed.")
+    if consolidate.empty():
+        logger.exception("Empty DataFrame.")
+        raise ValueError("Empty DataFrame: consolidate. Can't proceed.")
+    
     # Create an empty records.csv in the provided directory (only in the first call)
     file_path = os.path.join(directory, "records.csv")
     if not os.path.exists(file_path):
         empty_csv = pd.DataFrame({"date": [], "records_current": []})
         empty_csv.to_csv(file_path, index=False)
 
-    # Extraction
-    books_current, consolidate = extract()
+    # Tracking
     today = pd.Timestamp.now().isoformat() # To add in the record tracking
     current_count = books_current.shape[0] # To compare entries
 
