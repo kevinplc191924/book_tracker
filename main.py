@@ -8,40 +8,49 @@ from elt.transform import transform
 # Set logger
 logger = get_logger(__name__)
 
-# Define parameters
+### Parameter Definition ###
 
-# load()
+# Load
 directory = ".datasets/"
-save_df = False
+save_df_load = False
 
-# get_measures()
+# Transform
+save_df_transform = False
+
+# Get measures
 year = 2025
+
 
 def main():
     try:
         # Extraction
         logger.info("Starting extraction...")
-        books_current, consolidate = extract()
+        raw_books_current, raw_consolidate = extract()
 
         # Loading
         logger.info("Loading data...")
         load(
             directory=directory,
-            books_current= books_current,
-            consolidate= consolidate,
-            save_df=save_df
+            raw_books_current= raw_books_current,
+            raw_consolidate= raw_consolidate,
+            save_df=save_df_load
         )
 
         # Transformation
         logger.info("Transforming data...")
-        books, consolidate, records = transform(directory=directory, save_df=save_df)
+        transformed_books, transformed_consolidate, transformed_records = transform(
+            directory=directory,
+            raw_books_current = raw_books_current,
+            raw_consolidate = raw_consolidate,
+            save_df=save_df_transform
+        )
 
         # Summary and report
         logger.info("Getting summary and creating report...")
         results = get_measures(
-            books=books,
-            consolidate=consolidate,
-            records=records,
+            transformed_books_current=transformed_books_current,
+            transformed_consolidate=transformed_consolidate,
+            transformed_records=transformed_records,
             year=year
         )
 
@@ -57,7 +66,6 @@ def main():
         logger.error(f"Pipeline stopped due to transformation error: {e}")
     except Exception as e:
         logger.error(f"Error: {e}")
-
 
 
 if __name__ == "__main__":

@@ -30,7 +30,7 @@ def report(results: dict):
     console = Console()
 
     # Main summary table
-    summary_table = Table(title="📚 Reading Report")
+    summary_table = Table(title="Reading Report")
     summary_table.add_column("Metric", style="cyan", no_wrap=True)
     summary_table.add_column("Value", style="magenta")
 
@@ -51,31 +51,32 @@ def report(results: dict):
     console.print(summary_table)
 
     # Top-3 Best Ranked Books
-    console.print("\n✨ [bold]Top-3 Best Ranked Books This Year:[/bold]")
+    console.print("\[bold]Top-3 Best Ranked Books This Year:[/bold]")
     df_best = results["best"]
     best_table = Table(show_header=True, header_style="bold green")
     for col in df_best.columns:
         best_table.add_column(col.title().replace("_", " "), style="white")
-    for _, row in df_best.iterrows():
+    for row in df_best.itertuples(index=False):
+        # Make sure values are strings
         best_table.add_row(*[str(cell) for cell in row])
     console.print(best_table)
 
     # Last Book Read
-    console.print("\n📖 [bold]Last Book Read:[/bold]")
+    console.print("\[bold]Last Book Read:[/bold]")
     df_last = results["last"]
     last_table = Table(show_header=True, header_style="bold blue")
     for col in df_last.columns:
         last_table.add_column(col.title().replace("_", " "), style="white")
-    for _, row in df_last.iterrows():
+    for row in df_last.itertuples(index=False):
         last_table.add_row(*[str(cell) for cell in row])
     console.print(last_table)
 
     # New additions
-    console.print("\n📖 [bold]New book additions:[/bold]")
+    console.print("\n[bold]New book additions:[/bold]")
     df_new = results["new_entries"]
-    new_table = Table(show_header=True, header_style="bold blue")
+    new_table = Table(show_header=True, header_style="bold red")
     for col in df_new.columns:
         new_table.add_column(col.title().replace("_", " "), style="white")
-    for _, row in df_new.iterrows():
+    for row in df_new.itertuples(index=False):
         new_table.add_row(*[str(cell) for cell in row])
     console.print(new_table)

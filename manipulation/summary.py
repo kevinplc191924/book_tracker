@@ -1,12 +1,17 @@
 import pandas as pd
 
 from elt.logger import get_logger
-from elt.transform import transform
 
 # Set logger
 logger = get_logger(__name__)
 
-def get_measures(books: pd.DataFrame, consolidate: pd.DataFrame, records: pd.DataFrame, year: int) -> dict:
+def get_measures(
+  transformed_books_current: pd.DataFrame,
+  transformed_consolidate: pd.DataFrame,
+  transformed_records: pd.DataFrame,
+  year: int
+) -> dict:
+
     """
     Computes summary metrics and extracts highlights from book tracking data.
 
@@ -16,11 +21,11 @@ def get_measures(books: pd.DataFrame, consolidate: pd.DataFrame, records: pd.Dat
 
     Parameters
     ----------
-    books : pd.DataFrame
+    transformed_books_current : pd.DataFrame
         Transformed book DataFrame.
-    consolidate : pd.DataFrame
+    transformed_consolidate : pd.DataFrame
         Transformed consolidate DataFrame.
-    records : pd.DataFrame
+    transformed_records : pd.DataFrame
         Transformed records DataFrame.
     year : int
         The year to filter metrics by. If the year is outside the available range,
@@ -67,8 +72,8 @@ def get_measures(books: pd.DataFrame, consolidate: pd.DataFrame, records: pd.Dat
     """
 
     # Parameter validation
-    min_year_available = int(books["year"].min())
-    max_year_available = int(books["year"].max())
+    min_year_available = int(transformed_books_current["year"].min())
+    max_year_available = int(transformed_books_current["year"].max())
 
     if not isinstance(year, int):
         logger.exception("Invalid parameter format: year")
@@ -84,39 +89,36 @@ def get_measures(books: pd.DataFrame, consolidate: pd.DataFrame, records: pd.Dat
 
     # Counts
     overall_total = (
-        consolidate.shape[0] + books[books["status"] == "Completed"].shape[0]
+        transformed_consolidate.shape[0] + transformed_books_current[transformed_books_current["status"] == "Completed"].shape[0]
     )
-    total_current = books.query(f'status == "Completed" & year == {year}').shape[0]
-    ongoing = books.query('status == "Ongoing"').shape[0]
-    dropped = books.query('status == "Dropped"').shape[0]
+    total_current = transformed_books_current.query(f'status == "Completed" & year == {year}').shape[0]
+    ongoing = transformed_books_current.query('status == "Ongoing"').shape[0]
+    dropped = transformed_books_current.query('status == "Dropped"').shape[0]
 
     # Averages
-    mean_pages_per_day = books["pages_per_day"].dropna().mean().round(2)
-    mean_time_reading = books["days"].dropna().mean().round(2)
-    sub = books.query(
-        f"year == {year}"
-    )  # Current year subset for the following measures
+    mean_pages_per_day = transformed_books_current["pages_per_day"].dropna().mean().round(2)
+    mean_time_reading = transformed_books_current["days"].dropna().mean().round(2)
+    # Current year subset for the following measures
+    sub = transformed_books_current.query(f"year == {year}")
     mean_pages_per_day_current = sub["pages_per_day"].dropna().mean().round(2)
     mean_time_reading_current = sub["days"].dropna().mean().round(2)
 
     # Top-3 best ranked books in the current year
-    best = sub.nlargest(3, "score")[["book_name", "author", "score"]].reset_index(
-        drop=True
-    )  # Include ties
+    best = sub.nlargest(3, "score")[["book_name", "author", "score"]].reset_index(drop=True)  # Include ties
 
     # Last complete reading
-    last = (
-        sub.loc[
-            sub["status"] == "Completed", ["book_name", "author", "score", "end_date"]
-        ].tail(1).reset_index(drop=True)
-    )
+    last = sub.loc[
+      sub["status"] == "Completed",
+      ["book_name", "author", "score", "end_date"]
+    ].tail(1).reset_index(drop=True)
+    
     days_since_last = (pd.to_datetime("today") - last["end_date"].iloc[0]).days
 
     # New entries
-    if len(records) >= 2:
-        diff = records["records_current"].iloc[-1] - records["records_current"].iloc[-2]
-        feedback_new = f"New entries since {records.index.iloc[-2]}: {diff}."
-        new_entries = books.tail(diff)[["book_name", "author"]].reset_index(drop=True)
+    if len(transformed_records) >= 2:
+        diff = transformed_records["records_current"].iloc[-1] - transformed_records["records_current"].iloc[-2]
+        feedback_new = f"New entries since {transformed_records.index.iloc[-2]}: {diff}."
+        new_entries = transformed_books_current.tail(diff)[["book_name", "author"]].reset_index(drop=True)
     else:
         feedback_new = "No new entries to show." # Only for the first execution  
 
@@ -136,6 +138,5 @@ def get_measures(books: pd.DataFrame, consolidate: pd.DataFrame, records: pd.Dat
         "feedback_new": feedback_new,
         "new_entries": new_entries
     }
-    logger.info("Metrics successfully calculated.")
 
     return results

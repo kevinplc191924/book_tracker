@@ -24,5 +24,5 @@ test.ipynb
 book_tracker_creds.json
 
 # Exclude datasets
-datasets/books.csv
-datasets/consolidate.csv
+datasets/raw_books_current.csv
+datasets/raw_consolidate.csv

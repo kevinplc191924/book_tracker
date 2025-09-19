@@ -2,7 +2,6 @@ import os
 
 import pandas as pd
 
-from elt.extract import extract
 from elt.logger import get_logger
 from elt.exceptions import LoadError
 
@@ -10,9 +9,13 @@ from elt.exceptions import LoadError
 logger = get_logger(__name__)
 
 # Avoid duplicates in records
-def log_record_if_new(directory: str, today: pd.Timestamp, current_count: int):
+def log_record_if_new(
+    directory: str,
+    today: pd.Timestamp,
+    current_count: int
+):
     """
-    Append a new record to `records.csv` if the last entry does not match the current count.
+    Append a new record to `raw_records.csv` if the last entry does not match the current count.
 
     Parameters
     ----------
@@ -26,10 +29,10 @@ def log_record_if_new(directory: str, today: pd.Timestamp, current_count: int):
     Raises
     ------
     FileNotFoundError
-        If `records.csv` does not exist in the specified directory.
+        If `raw_records.csv` does not exist in the specified directory.
     """
 
-    file_path = os.path.join(directory, "records.csv")
+    file_path = os.path.join(directory, "raw_records.csv")
     new_record = pd.DataFrame({"date": [today], "records_current": [current_count]})
     
     # Check if the last entry is equal to the current
@@ -38,20 +41,27 @@ def log_record_if_new(directory: str, today: pd.Timestamp, current_count: int):
         new_record.to_csv(file_path, mode="a", header=False, index=False)
 
 
-def load(directory: str, books_current: pd.DataFrame, consolidate: pd.DataFrame, save_df: bool = False):
+def load(
+    directory: str,
+    raw_books_current: pd.DataFrame,
+    raw_consolidate: pd.DataFrame,
+    save_df: bool = False
+):
+
     """
-    Extract data from the origin and optionally save it to disk, logging record counts.
+    Load extracted data from the origin and optionally save it to disk, logging record counts
+    as `raw_records.csv`.
 
     Parameters
     ----------
     directory : str
         Path to the directory where extracted data and logs will be saved.
-    books_current : pd.DataFrame
+    raw_books_current : pd.DataFrame
         Book database with the current format (from extract).
-    consolidate : pd.DataFrame
+    raw_consolidate : pd.DataFrame
         Book database with the previous format (from extract).
     save_df : bool, optional
-        Whether to save the extracted DataFrames (`books_current.csv` and `consolidate.csv`),
+        Whether to save the extracted DataFrames (`raw_books_current.csv` and `raw_consolidate.csv`),
         by default False.
 
     Raises
@@ -76,41 +86,39 @@ def load(directory: str, books_current: pd.DataFrame, consolidate: pd.DataFrame,
     # Validate directory existence
     if not os.path.exists(directory):
         os.makedirs(directory)
-        logger.info(f"Directory created: {directory}")
     
-    # Validate dfs are not empty
-    if books_current.empty():
+    # Validate dataframes are not empty
+    if raw_books_current.empty:
         logger.exception("Empty DataFrame.")
         raise ValueError("Empty DataFrame: books_current. Can't proceed.")
-    if consolidate.empty():
+    if raw_consolidate.empty:
         logger.exception("Empty DataFrame.")
         raise ValueError("Empty DataFrame: consolidate. Can't proceed.")
     
     # Create an empty records.csv in the provided directory (only in the first call)
-    file_path = os.path.join(directory, "records.csv")
+    file_path = os.path.join(directory, "raw_records.csv")
     if not os.path.exists(file_path):
         empty_csv = pd.DataFrame({"date": [], "records_current": []})
         empty_csv.to_csv(file_path, index=False)
 
     # Tracking
     today = pd.Timestamp.now().isoformat() # To add in the record tracking
-    current_count = books_current.shape[0] # To compare entries
+    current_count = raw_books_current.shape[0] # To compare entries
 
     # Save dataframes if needed
     if save_df:
         try:
-            books_current.to_csv(os.path.join(directory, "books_current.csv"), index=False)
-            consolidate.to_csv(os.path.join(directory, "consolidate.csv"), index=False)
+            raw_books_current.to_csv(os.path.join(directory, "raw_books_current.csv"), index=False)
+            raw_consolidate.to_csv(os.path.join(directory, "raw_consolidate.csv"), index=False)
 
         except Exception as e:
-            logger.exception("Loading process failed: DataFrames.")
+            logger.exception("Loading process failed: raw book DataFrames.")
             raise LoadError(f"{e}")
     
     # Get only new entries and dates
     try:
         log_record_if_new(directory, today, current_count)
-        logger.info("Successfull loading process.")
-    
+
     except Exception as e:
-        logger.exception("Loading process failed: Records.")
+        logger.exception("Loading process failed: records tracking.")
         raise LoadError(f"{e}")

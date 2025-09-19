@@ -2,53 +2,86 @@ import os
 
 import pandas as pd
 
-from elt.extract import extract
 from elt.logger import get_logger
 from elt.exceptions import TransformationError
 
 # Set logger
 logger = get_logger(__name__)
 
-def transform(directory: str, save_df: bool = False) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+def transform(
+    directory: str,
+    raw_books_current: pd.DataFrame,
+    raw_consolidate: pd.DataFrame,
+    save_df: bool = False
+) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+
     """
     Transforms raw book tracking data into enriched DataFrames for metric analysis.
 
-    This function loads 'books' and 'consolidate' data either from saved CSV files or
-    directly from the source via `extract()`. It parses relevant date columns, computes
+    This function gets 'raw_books_current' and 'raw_consolidate' data either from saved CSV files or
+    directly from the source via `extract()` output. It parses relevant date columns, computes
     reading duration and reading rate metrics, and returns the processed datasets, along
-    with the records tracking.
+    with the records tracking with parsed dates in `transformed_records.csv`.
 
     Parameters
     ----------
     directory : str
-        Path to the directory containing the CSV files or where data will be saved.
+        Path to the directory containing the CSV files.
+    raw_books_current : pd.DataFrame
+        Book database with the current format (from extract).
+    raw_consolidate : pd.DataFrame
+        Book database with the previous format (from extract).
     save_df : bool, optional
-        Set True if the same parameter in the load function is also True. By default is False
-        to handle data directly with the extract function and avoid non-existing file issues.
+        Set True if the same parameter in `load()` is also True. By default is False
+        to handle data directly with the `extract()` output and avoid non-existing file issues.
 
     Returns
     -------
-    books : pandas.DataFrame
+    transformed_books_current : pandas.DataFrame
         DataFrame containing enriched book records with time-based metrics.
-    consolidate : pandas.DataFrame
+    transformed_consolidate : pandas.DataFrame
         DataFrame containing historical book data in a previous format.
-    records : pandas.DataFrame
+    transformed_records : pandas.DataFrame
         DataFrame tracking the number of records of books over time.
 
     Raises
     ------
     TransformationError
-        If any file loading, extraction, or transformation step fails.
+        If any transformation step fails.
     """
 
     if save_df:
         try:
-            # Get books (parse dates) and consolidate datasets
-            books = pd.read_csv(os.path.join(directory, "books.csv"), parse_dates=["start_date", "end_date"])
-            consolidate = pd.read_csv(os.path.join(directory, "consolidate.csv"))
+            # Transform: raw_books_current
 
-            # Get records track
-            records = pd.read_csv(os.path.join(directory, "records.csv"), parse_dates=["date"])
+            # Parse dates
+            transformed_books_current = pd.read_csv(
+                os.path.join(directory, "raw_books_current.csv"),
+                parse_dates=["start_date", "end_date"]
+            )
+
+            # Time-related columns
+            transformed_books_current["days"] = \
+            (transformed_books_current["end_date"] - transformed_books_current["start_date"]).dt.days
+            transformed_books_current["pages_per_day"] = \
+            (transformed_books_current["total_pages"] / transformed_books_current["days"]).round(2)
+            
+            # Transform: raw_consolidate
+
+            # Get the data from CSV
+            transformed_consolidate = pd.read_csv(
+                os.path.join(directory, "raw_consolidate.csv")
+            )
+
+            # Transform: raw_records
+
+            # Get the data from CSV and parse dates
+            transformed_records = pd.read_csv(
+                os.path.join(directory, "raw_records.csv"),
+                parse_dates=["date"]
+            )
+
+            return transformed_books_current, transformed_consolidate, transformed_records
 
         except Exception as e:
             logger.exception("Data transformation failed.")
@@ -56,23 +89,31 @@ def transform(directory: str, save_df: bool = False) -> tuple[pd.DataFrame, pd.D
     
     else:
         try:
-            # Load books and consolidate using extract()
-            books, consolidate = extract()
+            # Transform: raw_books_current
             
             # Parse dates
+            transformed_books_current = raw_books_current.copy()
             for col in ["start_date", "end_date"]:
-                books[col] = pd.to_datetime(books[col])
+                transformed_books_current[col] = pd.to_datetime(transformed_books_current[col])
             
-            # Get records track
-            records = pd.read_csv(os.path.join(directory, "records.csv"), parse_dates=["date"])
+            # Time-related columns
+            transformed_books_current["days"] = \
+            (transformed_books_current["end_date"] - transformed_books_current["start_date"]).dt.days
+            transformed_books_current["pages_per_day"] = \
+            (transformed_books_current["total_pages"] / transformed_books_current["days"]).round(2)
+            
+            # Transform: raw_consolidate (skipped: no transformation needed)
+            
+            # Transform: raw_records
+
+            # Get data from CSV and parse dates
+            transformed_records = pd.read_csv(
+                os.path.join(directory, "raw_records.csv"),
+                parse_dates=["date"]
+            )
+
+            return transformed_books_current, raw_consolidate, transformed_records
         
         except Exception as e:
             logger.exception("Data transformation failed.")
             raise TransformationError(f"{e}")
-
-    # Time-related columns
-    books["days"] = (books["end_date"] - books["start_date"]).dt.days
-    books["pages_per_day"] = (books["total_pages"] / books["days"]).round(2)
-    logger.info("Data sucessfully transformed.")
-
-    return books, consolidate, records
