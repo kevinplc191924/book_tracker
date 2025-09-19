@@ -37,31 +37,31 @@ def get_measures(
         A dictionary containing the following keys:
         
         - 'overall_total' : int  
-          Total number of completed books across all years.
+            Total number of completed books across all years.
         - 'total_current' : int  
-          Number of completed books in the specified year.
+            Number of completed books in the specified year.
         - 'ongoing' : int  
-          Number of books currently being read in the specified year.
+            Number of books currently being read in the specified year.
         - 'dropped' : int  
-          Number of books marked as dropped in the specified year.
+            Number of books marked as dropped in the specified year.
         - 'mean_pages_per_day' : float  
-          Average reading rate across all completed books.
+            Average reading rate across all completed books.
         - 'mean_time_reading' : float  
-          Average reading duration across all completed books.
+            Average reading duration across all completed books.
         - 'mean_pages_per_day_current' : float  
-          Average reading rate for books completed in the specified year.
+            Average reading rate for books completed in the specified year.
         - 'mean_time_reading_current' : float  
-          Average reading duration for books completed in the specified year.
+            Average reading duration for books completed in the specified year.
         - 'best' : pd.DataFrame  
-          Top 3 highest-scoring books in the specified year.
+            Top 3 highest-scoring books in the specified year.
         - 'last' : pd.DataFrame  
-          Most recently completed book in the specified year.
+            Most recently completed book in the specified year.
         - 'days_since_last' : int  
-          Number of days since the last completed book.
+            Number of days since the last completed book.
         - 'feedback_new' : str  
-          Message indicating the number of new entries since the last run.
-        - 'new_entries' : pandas.DataFrame  
-          DataFrame of newly added books, if any.
+            Message indicating the number of new entries since the last run.
+        - 'new_entries' : pd.DataFrame  
+            DataFrame of newly added books, if any.
 
     Raises
     ------
@@ -110,17 +110,20 @@ def get_measures(
     last = sub.loc[
       sub["status"] == "Completed",
       ["book_name", "author", "score", "end_date"]
-    ].tail(1).reset_index(drop=True)
+    ].sort_values(by="end_date").tail(1).reset_index(drop=True)
     
     days_since_last = (pd.to_datetime("today") - last["end_date"].iloc[0]).days
 
     # New entries
     if len(transformed_records) >= 2:
         diff = transformed_records["records_current"].iloc[-1] - transformed_records["records_current"].iloc[-2]
-        feedback_new = f"New entries since {transformed_records.index.iloc[-2]}: {diff}."
+        format_last_date = \
+        last["end_date"].iloc[-1].strftime("%Y-%m-%d")
+        feedback_new = f"New entries since {format_last_date}: {diff}."
         new_entries = transformed_books_current.tail(diff)[["book_name", "author"]].reset_index(drop=True)
     else:
-        feedback_new = "No new entries to show." # Only for the first execution  
+        feedback_new = "No new entries to show." # Only for the first execution or no new entries case
+        new_entries = pd.DataFrame(columns=["book_name", "author"])  
 
     # Dictionary to store results
     results = {

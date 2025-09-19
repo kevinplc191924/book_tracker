@@ -54,7 +54,6 @@ def extract() -> tuple[pd.DataFrame, pd.DataFrame]:
         books_current = pd.DataFrame(books_ws.get_all_records()) # Current format
         consolidate = pd.DataFrame(consolidate_ws.get_all_records()) # Previous format
 
-        logger.info("Data successfully extracted.")
         return books_current, consolidate
 
     except Exception as e:

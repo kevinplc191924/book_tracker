@@ -1,4 +1,5 @@
 from elt.extract import extract
+from elt.exceptions import ExtractionError, LoadError, TransformationError
 from elt.logger import get_logger
 from manipulation.summary import get_measures
 from elt.load import load
@@ -38,7 +39,7 @@ def main():
 
         # Transformation
         logger.info("Transforming data...")
-        transformed_books, transformed_consolidate, transformed_records = transform(
+        transformed_books_current, transformed_consolidate, transformed_records = transform(
             directory=directory,
             raw_books_current = raw_books_current,
             raw_consolidate = raw_consolidate,
@@ -46,7 +47,7 @@ def main():
         )
 
         # Summary and report
-        logger.info("Getting summary and creating report...")
+        logger.info("Getting summary and creating report...\n")
         results = get_measures(
             transformed_books_current=transformed_books_current,
             transformed_consolidate=transformed_consolidate,

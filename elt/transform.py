@@ -1,5 +1,6 @@
 import os
 
+import numpy as np
 import pandas as pd
 
 from elt.logger import get_logger
@@ -93,8 +94,13 @@ def transform(
             
             # Parse dates
             transformed_books_current = raw_books_current.copy()
+            # Replace empties with nulls
+            transformed_books_current["end_date"] = transformed_books_current["end_date"].replace("", np.nan)
             for col in ["start_date", "end_date"]:
                 transformed_books_current[col] = pd.to_datetime(transformed_books_current[col])
+
+            # Force column dtype: score must be float
+            transformed_books_current["score"] = pd.to_numeric(transformed_books_current["score"], errors="coerce")
             
             # Time-related columns
             transformed_books_current["days"] = \

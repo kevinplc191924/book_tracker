@@ -22,7 +22,8 @@ ENV/
 # Ignore specific files
 test.ipynb
 book_tracker_creds.json
+test_extraction.py
 
 # Exclude datasets
-datasets/raw_books_current.csv
-datasets/raw_consolidate.csv
+.datasets/raw_books_current.csv
+.datasets/raw_consolidate.csv
