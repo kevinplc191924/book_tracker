@@ -82,7 +82,8 @@ def get_measures(
     if year < min_year_available or year > max_year_available:
         logger.info("The year selected is not available in the dataset.")
         logger.info("The year should span from 2024 to the current year ideally.")
-        logger.info("The year to filter will be set to the maximum value available: {max_year_available}")
+        logger.info(f"The year to filter will be set to the maximum value available: {max_year_available}")
+        print()
         year = max_year_available
     
     ## Summary measures ##

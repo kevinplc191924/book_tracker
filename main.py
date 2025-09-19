@@ -13,10 +13,10 @@ logger = get_logger(__name__)
 
 # Load
 directory = ".datasets/"
-save_df_load = False
+save_df_load = False # Same as transform
 
 # Transform
-save_df_transform = False
+save_df_transform = False # Same as load
 
 # Get measures
 year = 2025

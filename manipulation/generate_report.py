@@ -49,9 +49,10 @@ def report(results: dict):
     console.print(summary_table)
 
     # Top-3 Best Ranked Books
-    console.print("\n[bold]Top-3 Best Ranked Books This Year:[/bold]")
+    console.print()
+    title_best = "Top-3 Best Ranked Books This Year"
     df_best = results["best"]
-    best_table = Table(show_header=True, header_style="bold green")
+    best_table = Table(show_header=True, header_style="bold green", title=title_best)
     for col in df_best.columns:
         best_table.add_column(col.title().replace("_", " "), style="white")
     for row in df_best.itertuples(index=False):
@@ -60,10 +61,11 @@ def report(results: dict):
     console.print(best_table)
 
     # Last Book Read
-    console.print("\n[bold]Last Book Read:[/bold]")
+    console.print()
+    title_last = "Last Book Read"
     df_last = results["last"].copy()
     df_last["end_date"] = df_last["end_date"].dt.strftime("%Y-%m-%d") # Date format to display
-    last_table = Table(show_header=True, header_style="bold blue")
+    last_table = Table(show_header=True, header_style="bold blue", title=title_last)
     for col in df_last.columns:
         last_table.add_column(col.title().replace("_", " "), style="white")
     for row in df_last.itertuples(index=False):
@@ -71,16 +73,21 @@ def report(results: dict):
     console.print(last_table)
 
     # New additions
-    console.print("\n[bold]New book additions:[/bold]")
+    console.print()
+    title_new = "New Book Additions"
     df_new = results["new_entries"]
 
     if df_new.empty:
-        console.print(results["feedback_new"])
+        new_table = Table(title=title_new)
+        new_table.add_row(f"[italic]{results['feedback_new']}[/italic]")
+        console.print(new_table)
+        console.print()
     else:
-        new_table = Table(show_header=True, header_style="bold red")
+        new_table = Table(show_header=True, header_style="bold red", title=title_new)
         for col in df_new.columns:
             new_table.add_column(col.title().replace("_", " "), style="white")
         for row in df_new.itertuples(index=False):
             new_table.add_row(*[str(cell) for cell in row])
         console.print(new_table)
         console.print(results["feedback_new"])
+        console.print()
