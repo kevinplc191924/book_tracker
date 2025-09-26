@@ -67,7 +67,6 @@ It follows an **ELT pipeline** (Extract → Load → Transform → Report) and g
 
 - The `database/` folder is excluded from version control for privacy reasons.
 - A small fake database (`simulated_database/`) is provided to show the structure of the data I used.
-- The file I retrieve data from is synced locally through OneDrive.
 - I created this project to track new additions and calculate statistics on my own data. I saw it as a good opportunity to apply ELT principles, which is why I designed this specific solution instead of opting for a simpler approach. 
 
 ---
