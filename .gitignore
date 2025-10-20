@@ -20,10 +20,8 @@ ENV/
 .vscode/
 
 # Ignore specific files
-test.ipynb
 book_tracker_creds.json
 test_extraction.py
-create_schema.py
 
 # Exclude datasets
 .datasets/raw_books_current.csv

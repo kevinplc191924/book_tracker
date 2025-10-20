@@ -42,14 +42,16 @@ It follows an **ELT pipeline** (Extract → Load → Transform → Report) and g
   - simulated_database/ # Shows the structure of the data used
     - simulated_books.csv
     - simulated_consolidate.csv
-  general_schema.py # Structure: 1st version
-  general_schema_v2.py # Structure: 2nd version
-  load_credentials.py
-  main.py # Main modularized Python script
-  .gitignore
-  README.md
-  requirements.txt
-  setup.sh
+  - general_schema.py # Structure: 1st version
+  - general_schema_v2.py # Structure: 2nd version
+  - load_credentials.py
+  - main.py # Main modularized Python script
+  - .gitignore
+  - README.md
+  - requirements.txt
+  - setup.sh
+  - test.ipynb
+  - load_credentials_process.md
 ```
 
 ---
